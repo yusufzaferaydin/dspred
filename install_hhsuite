@@ -1,3 +1,5 @@
+# Step by step instructions to install HHsuite to an Ubuntu based Linux system
+
 1. Install cmake
 sudo apt install cmake
  
