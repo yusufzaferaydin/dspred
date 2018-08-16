@@ -13,7 +13,9 @@ sudo make install
 https://github.com/soedinglab/hh-suite/
 
 4. Download lib/ffindex folder separately and include to the lib folder of the source tree
+
 5. Update the paths in CMakeCache.txt if HHsuite is going to be installed into a different directory
+
 6. Include the following lines to .bashrc file 
 
 INSTALL_BASE_DIR="/vol1/software/hh-suite-master/"
@@ -22,35 +24,37 @@ export PATH=${PATH}:${INSTALL_BASE_DIR}/bin:${INSTALL_BASE_DIR}/scripts
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${INSTALL_BASE_DIR}/lib/ffindex/src/mpq
 
 7. source ~/.bashrc
+
 8. cd build (the folder under the source tree. if does not exist first generate this folder using mkdir build under source tree)
+
 9. Update the MPI libraries
 
 sudo apt install libopenmpi-dev
 pip install mpi4py
 
-9. Run the following command
+10. Run the following command
 
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX=${INSTALL_BASE_DIR} ..
 
-10. Run the following command
+11. Run the following command
 
 sudo make
 
-11. Run the following command
+12. Run the following command
 
 sudo make install
 
-12. Copy or install BLAST version 2.26 to somewhere available on your drive disk (e.g. /vol1/software/blast/)
+13. Copy or install BLAST version 2.26 to somewhere available on your drive disk (e.g. /vol1/software/blast/)
 
-13. Copy or install the DSSP software (e.g. version 2.2.21) to somewhere available on your disk (e.g. /vol1/software/)
+14. Copy or install the DSSP software (e.g. version 2.2.21) to somewhere available on your disk (e.g. /vol1/software/)
 
-14. Copy the DSSP database to somewhere available on your drive disk (e.g. /vol1/data/)
+15. Copy the DSSP database to somewhere available on your drive disk (e.g. /vol1/data/)
 
-15. Copy or install PSIPRED v2 (e.g v2.6) to somewhere available on your drive disk (e.g. /vol1/software/)
+16. Copy or install PSIPRED v2 (e.g v2.6) to somewhere available on your drive disk (e.g. /vol1/software/)
 
-16. Optional: copy the pdb database to somewhere available on your drive disk (e.g. /vol1/data/)
+17. Optional: copy the pdb database to somewhere available on your drive disk (e.g. /vol1/data/)
 
-17. Open scripts/HHPaths.pm
+18. Open scripts/HHPaths.pm
 
 Set the following paths
 
@@ -60,6 +64,3 @@ ncbidir: should be set to the path for BLAST's (older C version such as 2.2.26) 
 pdbdir: should be set to the path for PDB database files
 dsspdir: should be set to the path for DSSP files
 dssp: should be set to the path for DSSP binaries
-
- 
-
