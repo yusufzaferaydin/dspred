@@ -12,7 +12,7 @@ The following software must be installed for DSPRED along with the protein datab
 4. Graphical Models Toolkit (GMTK): https://melodi.ee.washington.edu/gmtk/
 5. libSVM: https://www.csie.ntu.edu.tw/~cjlin/libsvm/
 
-For PSI-BLAST, the NR database and for HHblits, the Uniprot as well as PDB70 databases should be downloaded. Detailed installation instructions for HHblits can be found [here](install_hhblits).
+For PSI-BLAST, the NR database and for HHblits, the Uniprot as well as PDB70 databases should be downloaded. Detailed installation instructions for HHblits can be found [here](install_hhsuite).
 
 # Setting Paths
 
