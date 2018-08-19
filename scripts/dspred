@@ -134,11 +134,11 @@ n_dim=20
 
 case "$prediction_task" in
 
-        1) n_classes=3; pssm_window_size=9; ss_window_size=4; models_dir_dbn="../models/dbn/ss3/"; models_dir_svm="../models/svm/ss3/dyn_${dyn_flag}/"; prediction_str="ss3"; ;; #3-state ss pred
+        1) n_classes=3; pssm_window_size=9; ss_window_size=4; models_dir_dbn="${dspred_dir}models/dbn/ss3/"; models_dir_svm="${dspred_dir}models/svm/ss3/dyn_${dyn_flag}/"; prediction_str="ss3"; ;; #3-state ss pred
         2) n_classes=8; pssm_window_size=7; ss_window_size=2; models_dir_dbn=""; ;; #8-state ss pred (not available yet)
         3) n_classes=5; pssm_window_size=7; ss_window_size=4; models_dir_dbn=""; ;; #5-state torsion pred (not available yet)
-        4) n_classes=7; pssm_window_size=7; ss_window_size=2; models_dir_dbn="../models/dbn/ta7/"; models_dir_svm="../models/svm/ta7/dyn_${dyn_flag}/"; prediction_str="ta7"; ;; #7-state torsion pred
-        5) n_classes=2; pssm_window_size=9; ss_window_size=4; models_dir_dbn="../models/dbn/sa2/"; models_dir_svm="../models/svm/sa2/dyn_${dyn_flag}/"; prediction_str="sa2"; ;; #2-state solvent acc pred
+        4) n_classes=7; pssm_window_size=7; ss_window_size=2; models_dir_dbn="${dspred_dir}models/dbn/ta7/"; models_dir_svm="${dspred_dir}models/svm/ta7/dyn_${dyn_flag}/"; prediction_str="ta7"; ;; #7-state torsion pred
+        5) n_classes=2; pssm_window_size=9; ss_window_size=4; models_dir_dbn="${dspred_dir}models/dbn/sa2/"; models_dir_svm="${dspred_dir}models/svm/sa2/dyn_${dyn_flag}/"; prediction_str="sa2"; ;; #2-state solvent acc pred
 esac
 
 status_flag=0
@@ -275,14 +275,42 @@ else
         exit 1
 fi
 
+dmax=13
+n_gc=$((n_classes**(ss_window_size+1)))
+
+new_indices_filename="${output_dir}${protein_id}_new_indices.out"
+> $new_indices_filename
+
+for ((i=0; i < $n_gc; i++))
+do
+	echo $i >> $new_indices_filename
+done
+
+fixed_params_filename="fixed_params.txt"
+
+profile_str="psiblast"
+learned_means_nc_filename="learned_params_em_mean_vecs_${profile_str}_nc.out"
+learned_diag_covs_nc_filename="learned_params_em_covar_vecs_${profile_str}_nc.out"
+learned_dlinks_nc_filename="learned_params_em_dlink_mats_${profile_str}_nc.out"
+learned_dense_cpts_nc_filename="learned_params_em_dense_cpts_${profile_str}_nc.out"
+learned_means_cn_filename="learned_params_em_mean_vecs_${profile_str}_cn.out"
+learned_diag_covs_cn_filename="learned_params_em_covar_vecs_${profile_str}_cn.out"
+learned_dlinks_cn_filename="learned_params_em_dlink_mats_${profile_str}_cn.out"
+learned_dense_cpts_cn_filename="learned_params_em_dense_cpts_${profile_str}_cn.out"
+test_in_nc_master_filename="${models_dir_dbn}model_test_in_${profile_str}_nc.master"
+test_in_cn_master_filename="${models_dir_dbn}model_test_in_${profile_str}_cn.master"
+
+python ${scripts_dir}prepare_model_files_JT.py $n_classes $ss_window_size $dmax $new_indices_filename $models_dir_dbn $fixed_params_filename $learned_means_nc_filename $learned_diag_covs_nc_filename $learned_dlinks_nc_filename $learned_dense_cpts_nc_filename $test_in_nc_master_filename
+python ${scripts_dir}prepare_model_files_JT.py $n_classes $ss_window_size $dmax $new_indices_filename $models_dir_dbn $fixed_params_filename $learned_means_cn_filename $learned_diag_covs_cn_filename $learned_dlinks_cn_filename $learned_dense_cpts_cn_filename $test_in_cn_master_filename
+
 echo "Computing predictions by PSI-BLAST DBN (Past-NC model)"
 
 test_str_filename="${models_dir_dbn}model_test.str"
 tri_filename="${models_dir_dbn}model_test.mytrifile"
-test_master_filename_in="${models_dir_dbn}model_test_in_nc.master"
+test_master_filename_in="${models_dir_dbn}model_test_in_${profile_str}_nc.master"
 n_continuous_features=$n_dim
 n_discrete_features=0
-dbn_jt_log_filename="${output_dir}${protein_id}_psiblast_dbn_nc_jt.log"
+dbn_jt_log_filename="${output_dir}${protein_id}_${profile_str}_dbn_nc_jt.log"
 
 date
 ${scripts_dir}run_jt $gmtk_dir $test_str_filename $tri_filename $test_master_filename_in $obs_list_filename_psiblast_dbn_nc $n_continuous_features $n_discrete_features $pssm_window_size >& $dbn_jt_log_filename
@@ -302,8 +330,8 @@ fi
 
 echo "Computing predictions by PSI-BLAST DBN (Future-CN model)"
 
-test_master_filename_in="${models_dir_dbn}model_test_in_cn.master"
-dbn_jt_log_filename="${output_dir}${protein_id}_psiblast_dbn_cn_jt.log"
+test_master_filename_in="${models_dir_dbn}model_test_in_${profile_str}_cn.master"
+dbn_jt_log_filename="${output_dir}${protein_id}_${profile_str}_dbn_cn_jt.log"
 
 date
 ${scripts_dir}run_jt $gmtk_dir $test_str_filename $tri_filename $test_master_filename_in $obs_list_filename_psiblast_dbn_cn $n_continuous_features $n_discrete_features $pssm_window_size >& $dbn_jt_log_filename
@@ -326,8 +354,23 @@ echo $dbn_jt_log_filename
 
 echo "Computing predictions by HHMAKE DBN (Past-NC model)"
 
-test_master_filename_in="${models_dir_dbn}model_test_in_nc.master"
-dbn_jt_log_filename="${output_dir}${protein_id}_hhmake_dbn_nc_jt.log"
+profile_str="hhmake"
+learned_means_nc_filename="learned_params_em_mean_vecs_${profile_str}_nc.out"
+learned_diag_covs_nc_filename="learned_params_em_covar_vecs_${profile_str}_nc.out"
+learned_dlinks_nc_filename="learned_params_em_dlink_mats_${profile_str}_nc.out"
+learned_dense_cpts_nc_filename="learned_params_em_dense_cpts_${profile_str}_nc.out"
+learned_means_cn_filename="learned_params_em_mean_vecs_${profile_str}_cn.out"
+learned_diag_covs_cn_filename="learned_params_em_covar_vecs_${profile_str}_cn.out"
+learned_dlinks_cn_filename="learned_params_em_dlink_mats_${profile_str}_cn.out"
+learned_dense_cpts_cn_filename="learned_params_em_dense_cpts_${profile_str}_cn.out"
+test_in_nc_master_filename="${models_dir_dbn}model_test_in_${profile_str}_nc.master"
+test_in_cn_master_filename="${models_dir_dbn}model_test_in_${profile_str}_cn.master"
+
+python ${scripts_dir}prepare_model_files_JT.py $n_classes $ss_window_size $dmax $new_indices_filename $models_dir_dbn $fixed_params_filename $learned_means_nc_filename $learned_diag_covs_nc_filename $learned_dlinks_nc_filename $learned_dense_cpts_nc_filename $test_in_nc_master_filename
+python ${scripts_dir}prepare_model_files_JT.py $n_classes $ss_window_size $dmax $new_indices_filename $models_dir_dbn $fixed_params_filename $learned_means_cn_filename $learned_diag_covs_cn_filename $learned_dlinks_cn_filename $learned_dense_cpts_cn_filename $test_in_cn_master_filename
+
+test_master_filename_in="${models_dir_dbn}model_test_in_${profile_str}_nc.master"
+dbn_jt_log_filename="${output_dir}${protein_id}_${profile_str}_dbn_nc_jt.log"
 
 date
 ${scripts_dir}run_jt $gmtk_dir $test_str_filename $tri_filename $test_master_filename_in $obs_list_filename_hhmake_dbn_nc $n_continuous_features $n_discrete_features $pssm_window_size >& $dbn_jt_log_filename
@@ -347,8 +390,8 @@ fi
 
 echo "Computing predictions by HHMAKE DBN (Future-CN model)"
 
-test_master_filename_in="${models_dir_dbn}model_test_in_cn.master"
-dbn_jt_log_filename="${output_dir}${protein_id}_hhmake_dbn_cn_jt.log"
+test_master_filename_in="${models_dir_dbn}model_test_in_${profile_str}_cn.master"
+dbn_jt_log_filename="${output_dir}${protein_id}_hhmake_dbn_${profile_str}_cn_jt.log"
 
 date
 ${scripts_dir}run_jt $gmtk_dir $test_str_filename $tri_filename $test_master_filename_in $obs_list_filename_hhmake_dbn_cn $n_continuous_features $n_discrete_features $pssm_window_size >& $dbn_jt_log_filename

@@ -555,7 +555,7 @@ update_history_DT                % DT name
 %                                 DENSE CPTs                                  %
 %                                                                             %
 
-DENSE_CPT_IN_FILE       /vol1/zafer/software/dspred/models/dbn/ss3/learnedParams.EM.denseCPTs.out.fut                ascii
+DENSE_CPT_IN_FILE       ../models/dbn/ss3/learnedParams.EM.denseCPTs.out.fut                ascii
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                               DLINK STRUCTURES                              %
@@ -567,14 +567,14 @@ DENSE_CPT_IN_FILE       /vol1/zafer/software/dspred/models/dbn/ss3/learnedParams
 % future frame.                                                               %
 % ( see section 4.5 in GMTK reference documentation )                         %
 
-DLINK_IN_FILE          /vol1/zafer/software/dspred/models/dbn/ss3/fixed_params.txt      ascii
+DLINK_IN_FILE          ../models/dbn/ss3/fixed_params.txt      ascii
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                  MEANs and COVARs for GAUSSIAN COMPONENTS                   %
 %                                                                             %
 
-MEAN_IN_FILE                    /vol1/zafer/software/dspred/models/dbn/ss3/learnedParams.EM.meanVecs.out.fut         ascii
-COVAR_IN_FILE                   /vol1/zafer/software/dspred/models/dbn/ss3/learnedParams.EM.covarVecs.out.fut        ascii
+MEAN_IN_FILE                    ../models/dbn/ss3/learnedParams.EM.meanVecs.out.fut         ascii
+COVAR_IN_FILE                   ../models/dbn/ss3/learnedParams.EM.covarVecs.out.fut        ascii
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                               DLINK MATRICES                                %
@@ -584,7 +584,7 @@ COVAR_IN_FILE                   /vol1/zafer/software/dspred/models/dbn/ss3/learn
 %                                                                             %
 % We will have as many dlink matrices as we have emission classes ...
 
-DLINK_MAT_IN_FILE               /vol1/zafer/software/dspred/models/dbn/ss3/learnedParams.EM.dlinkMats.out.fut       ascii
+DLINK_MAT_IN_FILE               ../models/dbn/ss3/learnedParams.EM.dlinkMats.out.fut       ascii
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                               GAUSSIAN COMPONENTS                           %
@@ -599,7 +599,7 @@ DLINK_MAT_IN_FILE               /vol1/zafer/software/dspred/models/dbn/ss3/learn
 %       f) name of covariance vector
 %       g) name of dlink structure (if type=1)
 
-MC_IN_FILE              /vol1/zafer/software/dspred/models/dbn/ss3/fixed_params.txt      ascii
+MC_IN_FILE              ../models/dbn/ss3/fixed_params.txt      ascii
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                    DENSE PROBABILITY MASS FUNCTIONS                         %
@@ -608,7 +608,7 @@ MC_IN_FILE              /vol1/zafer/software/dspred/models/dbn/ss3/fixed_params.
 % mixture of components -- we are only using single-component mixtures, so    %
 % we will only need a single weight vector with one weight=1                  %
 
-DPMF_IN_FILE            /vol1/zafer/software/dspred/models/dbn/ss3/fixed_params.txt      ascii
+DPMF_IN_FILE            ../models/dbn/ss3/fixed_params.txt      ascii
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                          MIXTURES OF GAUSSIAN COMPONENTS                    %
@@ -626,13 +626,13 @@ DPMF_IN_FILE            /vol1/zafer/software/dspred/models/dbn/ss3/fixed_params.
 %       f) name of 1st component
 %       g) name of 2nd component, etc ...
 
-MX_IN_FILE              /vol1/zafer/software/dspred/models/dbn/ss3/fixed_params.txt  ascii
+MX_IN_FILE              ../models/dbn/ss3/fixed_params.txt  ascii
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                              NAME COLLECTIONs                               %
 %                                                                             %
 % and finally we define a collection of gaussian mixtures ...                 %
-NAME_COLLECTION_IN_FILE /vol1/zafer/software/dspred/models/dbn/ss3/fixed_params.txt  ascii
+NAME_COLLECTION_IN_FILE ../models/dbn/ss3/fixed_params.txt  ascii
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                    END                                      %
