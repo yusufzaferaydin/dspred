@@ -8,11 +8,13 @@ DSPRED runs in Linux/Unix operating system.
 The following software must be installed for DSPRED along with the protein databases for PSI-BLAST and HHblits:
 1. PSI-BLAST from NCBI: https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download
 2. HHblits: https://github.com/soedinglab/hh-suite 
-3. HMMER3 (required for DSPRED v2 only): http://www.hmmer.org
+3. Rosetta (get_pdb.py and amino_acids.py scripts are required only to download PDB files): https://www.rosettacommons.org/software 
 4. Graphical Models Toolkit (GMTK): https://melodi.ee.washington.edu/gmtk/
 5. libSVM: https://www.csie.ntu.edu.tw/~cjlin/libsvm/
 
-For PSI-BLAST, the NR database and for HHblits, the Uniprot as well as PDB70 databases should be downloaded. Detailed installation instructions for HHblits can be found [here](install_hhsuite).
+For PSI-BLAST, the NR database and for HHblits, the Uniprot as well as PDB70 databases should be downloaded. Detailed installation instructions for HHblits can be found [here](install_hhsuite). HMMER3 software is used to compute the second structural profile matrix and its binaries are already under code/scripts/pfamscan/hmmer3/. If that does not work you can install HMMER by visiting http://www.hmmer.org and setting the path variable called hmmer_dir inside code/scripts/dspred file.
 
-# Setting Paths
+# Downloading the DSPRED files
+
+1. 
 
