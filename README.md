@@ -29,7 +29,7 @@ The second structural profile matrix (SP2) is computed using the PfamScan progra
 
 If you had to re-install BioPerl you need to install it under scripts/pfamscan/ folder. If you had to re-install T-Coffee and HMMER3 then you need to set the path variables called hmmer_dir and tcoffee_msa_dir inside scripts/dspred file.
 
-# Downloading the DSPRED files
+# Downloading DSPRED 
 
 1. cd to the directory where you want to install DSPRED
 2. Type the following command<br/>
