@@ -1,0 +1,166 @@
+% Structure File Identification Information
+0 change_state 0 2 D 0 1 1 state_count_down 0 
+1 state 0 2 D 0 1 0 
+2 state_count_down 0 13 D 0 1 1 state 0 
+3 state_class_history 0 32 D 0 1 1 state 0 
+4 aa_profile 0 0 C 0 1 1 state_class_history 0 
+5 change_state 1 2 D 0 1 1 state_count_down 0 
+6 state 1 2 D 1 change_state -1 2 1 state -1 1 state -1 
+7 state_count_down 1 13 D 1 change_state -1 2 2 state_count_down -1 state 0 1 state 0 
+8 state_class_history 1 32 D 0 1 2 state_class_history -1 state 0 
+9 aa_profile 1 0 C 0 1 1 state_class_history 0 
+1 1 
+@@@!!!TRIFILE_END_OF_ID_STRING!!!@@@ 
+
+% ---
+% GMTK Triangulation File Created: Saturday July 07 2018, 09:34:47 +03
+% Options-: triangulationHeuristic: completed, jtWeight: T, jtwUB: F, jtwPUI: 0.000000, jtwMC: F, jtwSNSC: 1.000000, jtwDNSC: 1.000000, pfCobWeight: 0.000000, findBestBoundary: T, traverseFraction: 1.000000, noBoundaryMemoize: F, forceLeftRight: , boundaryHeuristic: S, 
+% ---
+
+
+% ---
+% --- M, number of chunks in which to find interface boundary
+1 
+
+% ---
+% --- S, chunk skip
+1 
+
+% ---
+% --- interface method
+LEFT 
+
+% ---
+% --- boundary method
+Left_interface:Run_Bdry_Alg(T),Bnd_Heurs(S),TravFrac(1.000000),Tri_Heur(completed) 
+
+% ---
+% --- P partition information: variables and their neighbors
+% change_state(0) : state(0), state_count_down(0), state_class_history(0), aa_profile(0), state(1), state_count_down(1), state_class_history(1),
+% state(0) : change_state(0), state_count_down(0), state_class_history(0), aa_profile(0), state(1), state_count_down(1), state_class_history(1),
+% state_count_down(0) : change_state(0), state(0), state_class_history(0), aa_profile(0), state(1), state_count_down(1), state_class_history(1),
+% state_class_history(0) : change_state(0), state(0), state_count_down(0), aa_profile(0), state(1), state_count_down(1), state_class_history(1),
+% aa_profile(0) : change_state(0), state(0), state_count_down(0), state_class_history(0), state(1), state_count_down(1), state_class_history(1),
+% state(1) : change_state(0), state(0), state_count_down(0), state_class_history(0), aa_profile(0), state_count_down(1), state_class_history(1),
+% state_count_down(1) : change_state(0), state(0), state_count_down(0), state_class_history(0), aa_profile(0), state(1), state_class_history(1),
+% state_class_history(1) : change_state(0), state(0), state_count_down(0), state_class_history(0), aa_profile(0), state(1), state_count_down(1),
+% --- P partition definition
+P_PARTITION 8 change_state 0 state 0 state_count_down 0 state_class_history 0 aa_profile 0 state 1 state_count_down 1 state_class_history 1 
+
+% ---
+% --- C partition information: variables and their neighbors
+% change_state(1) : state(1), state_count_down(1), state_class_history(1), aa_profile(1), state(2), state_count_down(2), state_class_history(2),
+% state(1) : change_state(1), state_count_down(1), state_class_history(1), aa_profile(1), state(2), state_count_down(2), state_class_history(2),
+% state_count_down(1) : change_state(1), state(1), state_class_history(1), aa_profile(1), state(2), state_count_down(2), state_class_history(2),
+% state_class_history(1) : change_state(1), state(1), state_count_down(1), aa_profile(1), state(2), state_count_down(2), state_class_history(2),
+% aa_profile(1) : change_state(1), state(1), state_count_down(1), state_class_history(1), state(2), state_count_down(2), state_class_history(2),
+% state(2) : change_state(1), state(1), state_count_down(1), state_class_history(1), aa_profile(1), state_count_down(2), state_class_history(2),
+% state_count_down(2) : change_state(1), state(1), state_count_down(1), state_class_history(1), aa_profile(1), state(2), state_class_history(2),
+% state_class_history(2) : change_state(1), state(1), state_count_down(1), state_class_history(1), aa_profile(1), state(2), state_count_down(2),
+% --- C partition definition
+C_PARTITION 8 change_state 1 state 1 state_count_down 1 state_class_history 1 aa_profile 1 state 2 state_count_down 2 state_class_history 2 
+
+% ---
+% --- E partition information: variables and their neighbors
+% change_state(2) : state(2), state_count_down(2), state_class_history(2), aa_profile(2),
+% state(2) : change_state(2), state_count_down(2), state_class_history(2), aa_profile(2),
+% state_count_down(2) : change_state(2), state(2), state_class_history(2), aa_profile(2),
+% state_class_history(2) : change_state(2), state(2), state_count_down(2), aa_profile(2),
+% aa_profile(2) : change_state(2), state(2), state_count_down(2), state_class_history(2),
+% --- E partition definition
+E_PARTITION 5 change_state 2 state 2 state_count_down 2 state_class_history 2 aa_profile 2 
+
+% ---
+% --- PC information : variables and their neighbors
+% state(1) : change_state(1), state_count_down(1), state_class_history(1), aa_profile(1), state(2), state_count_down(2), state_class_history(2),
+% state_count_down(1) : change_state(1), state(1), state_class_history(1), aa_profile(1), state(2), state_count_down(2), state_class_history(2),
+% state_class_history(1) : change_state(1), state(1), state_count_down(1), aa_profile(1), state(2), state_count_down(2), state_class_history(2),
+% --- PC interface definition
+PC_PARTITION 3 state 1 state_count_down 1 state_class_history 1 
+
+% ---
+% --- CE information : variables and their neighbors
+% state(2) : change_state(1), state(1), state_count_down(1), state_class_history(1), aa_profile(1), state_count_down(2), state_class_history(2),
+% state_count_down(2) : change_state(1), state(1), state_count_down(1), state_class_history(1), aa_profile(1), state(2), state_class_history(2),
+% state_class_history(2) : change_state(1), state(1), state_count_down(1), state_class_history(1), aa_profile(1), state(2), state_count_down(2),
+% --- CE interface definition
+CE_PARTITION 3 state 2 state_count_down 2 state_class_history 2 
+
+% ---
+% ---- P Partitions Cliques and their weights
+% ---- 1 total max-cliques 
+% ---- Triangulation came from method: 1-completed
+% 0 : 8  3.130977
+%    change_state(0)
+%    state(0)
+%    state_count_down(0)
+%    state_class_history(0)
+%    aa_profile(0)
+%    state(1)
+%    state_count_down(1)
+%    state_class_history(1)
+% Maximum clique state space = 1e3.130977, total state space = 1e3.130977
+1-completed 
+3
+0 8 change_state 0 state 0 state_count_down 0 state_class_history 0 aa_profile 0 state 1 state_count_down 1 state_class_history 1 
+1  1 state 0
+2  1 state 1
+
+% ---
+% ---- C Partitions Cliques and their weights
+% ---- 1 total max-cliques 
+% ---- Triangulation came from method: 1-completed
+% 0 : 8  4.636127
+%    change_state(1)
+%    state(1)
+%    state_count_down(1)
+%    state_class_history(1)
+%    aa_profile(1)
+%    state(2)
+%    state_count_down(2)
+%    state_class_history(2)
+% Maximum clique state space = 1e4.636127, total state space = 1e4.636127
+1-completed 
+2
+0 8 change_state 1 state 1 state_count_down 1 state_class_history 1 aa_profile 1 state 2 state_count_down 2 state_class_history 2 
+1  1 state 2
+
+% ---
+% ---- E Partitions Cliques and their weights
+% ---- 1 total max-cliques 
+% ---- Triangulation came from method: 1-completed
+% 0 : 5  3.221153
+%    change_state(2)
+%    state(2)
+%    state_count_down(2)
+%    state_class_history(2)
+%    aa_profile(2)
+% Maximum clique state space = 1e3.221153, total state space = 1e3.221153
+1-completed 
+1 
+0 5 change_state 2 state 2 state_count_down 2 state_class_history 2 aa_profile 2 
+
+
+% ----
+% ----
+% ----
+% ---- Printing final clique set and clique weights---
+%   --- Prologue summary, 1 cliques
+%    --- P curWeight = 3.130977
+%   --- Prologue max clique weight = 3.130977, total weight = 3.130977, jt_weight = 1.000000
+%   --- Chunk summary, 1 cliques
+%    --- C curWeight = 4.636127
+%   --- Chunk max clique weight = 4.636127, total Cx1 weight = 4.636127, per-chunk total C weight = 4.636127, jt_weight = 1.000000
+%   --- Epilogue summary, 1 cliques
+%    --- E curWeight = 3.221153
+%   --- Epilogue max clique weight = 3.221153, total weight = 3.221153, jt_weight = 1.000000
+% --- Final set (P,Cx1,E) has max clique weight = 4.636127, total state space = 4.665394 ---
+% --- Total weight when unrolling 1x = 4.665394 ---
+% --- Total weight when unrolling 2x = 4.952037 ---
+% --- Total weight when unrolling 5x = 5.341110 ---
+% --- Total weight when unrolling 10x = 5.639144 ---
+% --- Total weight when unrolling 20x = 5.938668 ---
+% --- Total weight when unrolling 50x = 6.335702 ---
+% --- Total weight when unrolling 100x = 6.636430 ---
+% --- Total weight when unrolling 500x = 7.335158 ---
+% --- Total weight when unrolling 1000x = 7.636157 ---
