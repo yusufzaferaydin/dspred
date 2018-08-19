@@ -32,13 +32,13 @@ If you had to re-install BioPerl you need to install it under scripts/pfamscan/ 
 # Downloading the DSPRED files
 
 1. cd to the directory where you want to install DSPRED
-2. Type the following command
+2. Type the following command<br/>
     git clone https://github.com/yusufzaferaydin/dspred.git
 3. cd dspred/scripts
 
 # Setting the paths and running DSPRED
 
-1. Set the paths in dspred file 
+1. Set the paths in file named [dspred](scripts/dspred) 
 2. ./dspred -h will print the help menu and parameter options of DSPRED
 3. ./run_dspred includes example command line for running dspred
 4. Outputs will be saved under the output directory (default: outputs/) in protein_id_dspred.out format.
