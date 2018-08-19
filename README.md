@@ -16,5 +16,17 @@ For PSI-BLAST, the NR database and for HHblits, the Uniprot as well as PDB70 dat
 
 # Downloading the DSPRED files
 
-1. 
+1. cd to the directory where you want to install DSPRED
+2. git clone git clone https://github.com/yusufzaferaydin/dspred.git
+3. cd dspred/scripts
+
+# Setting the paths and running DSPRED
+
+1. Set the paths in dspred file 
+2. ./dspred -h will print the help menu and parameter options of DSPRED
+3. ./run_dspred includes example command line for running dspred
+
+# Feedback and comments
+
+You are welcome to send comments to zafer.aydin@agu.edu.tr
 
