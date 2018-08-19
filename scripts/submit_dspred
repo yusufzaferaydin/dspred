@@ -1,0 +1,58 @@
+#!/bin/bash
+
+if [ $# -ne 3 ]
+then
+	echo "Usage: bash submit_dspred <fasta_filename> <prediction_task>" >&2
+	exit 1
+fi
+
+fasta_filename=$1
+prediction_task=$2
+#sp_flag=$3
+#dyn_flag=$4
+
+sp_flag=2
+dyn_flag=0
+
+n_cores=28
+output_dir="../outputs/"
+#output_dir="$(mktemp -d)/"
+#output_dir="/tmp/tmp.jyrjsJdvI4/"
+status_filename="${output_dir}run_status"
+touch $status_filename
+
+cp $fasta_filename $output_dir
+
+sbatch << EOT
+#!/bin/bash
+# 
+# DSPRED job submission script
+#
+# TODO:
+#   - Set name of the job below changing "DSPRED" value.
+#   - Set the requested number of tasks (cpu cores) with --ntasks parameter.
+#   - Select the partition (queue) you want to run the job in:
+#   - Set the required time limit for the job with --time parameter.
+#     - Acceptable time formats include "minutes", "minutes:seconds", "hours:minutes:seconds", "days-hours", "days-hours:minutes" and "days-hours:minutes:seconds"
+#   - Put this script and all the input file under the same directory.
+#   - Set the required parameters, input and output file names below.
+#   - If you do not want mail please remove the line that has --mail-type
+#   - Submit this file using:
+#      bash submit_dspred <fasta_filename>
+#
+# -= Resources =-
+#
+#SBATCH --job-name=DSPRED
+#SBATCH --ntasks=28
+
+#input_filename="../data/example.fasta"
+
+./run_dspred $fasta_filename $prediction_task $n_cores $sp_flag $dyn_flag $output_dir $status_filename
+
+#rm -rf $output_dir
+echo $output_dir
+
+exit
+
+EOT
+

@@ -1,0 +1,125 @@
+#!/bin/bash
+
+if [ $# -ne 12 ]
+then
+	echo "Usage: run_compute_average_distribution_3 <average_postp_filename_psiblast> <average_postp_filename_hhmake> <sp_1_filename> <dyn_flag> <average_distribution_3_filename>"
+fi
+
+scripts_dir=$1
+prediction_task=$2
+n_classes=$3
+hhblits_output_filename=$4
+average_postp_filename_psiblast=$5
+average_postp_filename_hhmake=$6
+sp_flag=$7
+sp_1_filename=$8
+sp_2_filename=$9
+dyn_flag=${10}
+output_dir=${11}
+average_distribution_3_filename=${12}
+
+identities_filename="${output_dir}identities"
+max_identity_filename="${output_dir}max_identity"
+skip_top_hit_flag=1
+
+if ((sp_flag == 1))
+then
+        sp_2_weight=0.0;
+
+	case "$dyn_flag" in
+
+		0) 
+			psiblast_weight=0.33333; 
+			hhmake_weight=0.33333; 
+			sp_1_weight=0.33333; 
+			;;
+		1) 
+			grep "Identities=" $hhblits_output_filename > $identities_filename
+			n_identites=$(cat $identities_filename | wc -l)
+			pc_thr=100
+			python ${scripts_dir}extract_max_identity.py $identities_filename $pc_thr $max_identity_filename $skip_top_hit_flag
+			max_identity=$(cat $max_identity_filename)
+			statement=`echo "$max_identity < 1.0" | bc`
+			statement_2=`echo "$max_identity < 30.0" | bc`
+
+			if [ $statement -eq 1 ] 
+			then 
+				psiblast_weight=0.5
+				hhmake_weight=0.5
+				sp_1_weight=0.0 
+
+			elif [ $statement_2 -eq 1 ]
+			then
+				psiblast_weight=0.33333
+				hhmake_weight=0.33333
+				sp_1_weight=0.33333
+			else
+				sp_1_weight=$(echo "scale=11; (($max_identity)-1.0)/100.0" | bc -l)
+				psiblast_weight=$(echo "scale=11; ((1-($sp_1_weight))/2.0)" | bc -l)
+				hhmake_weight=$psiblast_weight
+			fi
+
+			;;
+		2) 
+			grep "Identities=" $hhblits_output_filename > $identities_filename
+			n_identites=$(cat $identities_filename | wc -l)
+			pc_thr=100
+			python ${scripts_dir}extract_max_identity.py $identities_filename $pc_thr $max_identity_filename $skip_top_hit_flag
+			max_identity=$(cat $max_identity_filename)
+			statement=`echo "$max_identity < 30.0" | bc`
+
+			#echo $max_identity
+
+			if [ $statement -eq 1 ]
+			then
+				sp_1_weight=0.33333
+				psiblast_weight=0.33333
+				hhmake_weight=0.33333		
+			else
+				sp_1_weight_filename="${output_dir}sp_1_weight"
+				max_identity_scaled=$(echo "scale=11; ($max_identity*0.01)" | bc -l)
+				python ${scripts_dir}sigmoid.py $max_identity_scaled $sp_1_weight_filename
+				sp_1_weight=$(cat $sp_1_weight_filename)
+				psiblast_weight=$(echo "scale=11; (1-($sp_1_weight))/2.0" | bc -l)
+				hhmake_weight=$psiblast_weight
+			fi
+
+			;;
+		3)
+			grep "Identities=" $hhblits_output_filename > $identities_filename
+			n_identites=$(cat $identities_filename | wc -l)
+			pc_thr=100
+			python ${scripts_dir}extract_max_identity.py $identities_filename $pc_thr $max_identity_filename $skip_top_hit_flag
+			max_identity=$(cat $max_identity_filename)
+	 
+			numerator=$(echo "scale=11; (1.0+($max_identity-21)*0.25/10.0)" | bc -l)
+			psiblast_weight=$(echo "scale=11; (1-($numerator)/3.0)/2.0" | bc -l)
+			hhmake_weight=$(echo "scale=11; (1-($numerator)/3.0)/2.0" | bc -l)
+			sp_1_weight=$(echo "scale=11; ($numerator)/3.0" | bc -l)
+
+			;;
+	esac
+
+elif ((sp_flag == 2))
+then
+
+        case "$dyn_flag" in
+
+		0)
+                        psiblast_weight=0.25;
+                        hhmake_weight=0.25;
+                        sp_1_weight=0.25;
+                        sp_2_weight=0.25;
+                        ;;
+		*)
+			echo "Dynamic Weighting for SP1+SP2 has not been implemented yet. Switching to dyn=0 mode."
+                        psiblast_weight=0.25;
+                        hhmake_weight=0.25;
+                        sp_1_weight=0.25;
+                        sp_2_weight=0.25;
+			;;			
+	esac
+fi
+
+python ${scripts_dir}compute_average_distribution_3.py $prediction_task $n_classes $average_postp_filename_psiblast $average_postp_filename_hhmake $sp_1_filename $sp_2_filename $psiblast_weight $hhmake_weight $sp_1_weight $sp_2_weight $average_distribution_3_filename
+

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [ $# -ne 8 ]
+then
+        echo ""
+        echo "Usage: $0 <gmtk_bins_dir> <str_filename> <tri_filename> <master_filename_in> <test_files_list_filename> <n_continuous_features> <n_discrete_features> <n_skip>"
+        echo ""
+        exit 1
+fi
+
+gmtk_bins_dir=$1
+str_filename=$2
+tri_filename=$3
+master_filename_in=$4
+test_files_list_filename=$5
+n_continuous_features=$6
+n_discrete_features=$7
+n_skip=$8
+
+${gmtk_bins_dir}gmtkJT \
+		-strFile $str_filename \
+		-triFile $tri_filename \
+		-of1 $test_files_list_filename -nf1 $n_continuous_features -ni1 $n_discrete_features -fmt1 ascii \
+		-inputMasterFile $master_filename_in \
+		-pCliquePrintRange 1:2 \
+		-cCliquePrintRange 1:1 \
+		-doDist \
+		-startSkip $n_skip \
+		-verbosity 19 
+

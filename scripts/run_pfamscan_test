@@ -1,0 +1,22 @@
+#!/bin/bash
+
+fasta_filename_full_path="../data/example.fasta"
+prediction_task=4
+pc_thr=100
+chain_control=0
+pfamscan_dir="/vol1/zafer/software/dspred/stand_alone/scripts/pfamscan/"
+hmmer_dir="/vol1/zafer/software/dspred/stand_alone/scripts/pfamscan/hmmer3/"
+bioperl_dir=
+blastp_dir="/vol1/apps/ncbi-blast/2.3.0/bin/"
+rosetta_get_pdb_dir="/vol1/nuh/rosetta_bin_linux_2016.11.58563_bundle/main/source/scripts/python/public/"
+dssp_program_dir="/vol1/apps/dssp/2.2.1/"
+dssp_labeling_dir="${pfamscan_dir}for_nuh/"
+tcoffee_msa_dir="${pfamscan_dir}tcoffee/"
+hhmake_dir="/vol1/apps/hh-suite/3.0-b2/bin/"
+output_dir="../outputs/"
+sp_2_filename="${outputs_dir}example_ss3_sp_2.struct"
+scripts_dir="/vol1/zafer/software/dspred/stand_alone/scripts/"
+
+${scripts_dir}run_compute_sp_2_pfamscan $fasta_filename_full_path $prediction_task $pc_thr $chain_control $pfamscan_dir $hmmer_dir $blastp_dir $rosetta_get_pdb_dir $dssp_program_dir $dssp_labeling_dir $tcoffee_msa_dir $hhmake_dir $output_dir $sp_2_filename
+
+

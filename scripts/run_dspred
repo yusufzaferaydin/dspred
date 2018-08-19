@@ -1,0 +1,17 @@
+#!/bin/bash
+
+fasta_filename="../data/example.fasta"
+prediction_task=1
+n_threads=4
+sp_flag=1
+dyn_flag=0
+output_dir="../outputs/"
+log_filename="../outputs/run_dspred_example.log"
+
+#./dspred -i $fasta_filename -p $prediction_task -t $n_threads -s $sp_flag -d $dyn_flag -o $output_dir > $log_filename
+./dspred -i $fasta_filename -p $prediction_task -t $n_threads -s $sp_flag -d $dyn_flag -o $output_dir 
+
+#./dspred --input $fasta_filename --pred $prediction_task --threads $n_threads --sp $sp_flag --dyn $dyn_flag --output $output_dir --log $log_filename
+#./dspred -i $fasta_filename -p $prediction_task
+
+

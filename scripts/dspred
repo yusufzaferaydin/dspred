@@ -1,0 +1,505 @@
+#!/bin/bash
+
+#*********************************************************************************
+# PLEASE SET THOSE PATHS BELOW FOR DSPRED PROGRAM TO WORK (Use full path notation)
+#*********************************************************************************
+# blast_dir: The directory which contains binaries for BLAST
+# blast_db_dir: The directory which contains database files for BLAST (currently nr database is supported)
+# hhblits_bin_dir: The directory which contains binaries for HHblits
+# hhsuite_db_dir: The directory which contains sequence database files for HHblits (currently uniprot20_2016_02 database is supported only)
+# hhsuite_db_dir_2: The directory which contains template database files for HHblits (currently pdb70 database is supported only)
+# addss_bin_dir: The directory which contains addss.pl script of HHblits which is used to add secondary structure information
+# get_pdb_script_dir: The directory which contains get_pdb.py and amino_acids.py scripts of Rosetta 
+# gmtk_dir: The directory which contains GMTK binaries
+# libsvm_dir: The directory which contains libSVM binaries
+# dspred_dir: The directory of dspred
+ 
+blast_dir="/vol1/apps/ncbi-blast/2.3.0/bin/"
+blast_db_dir="/vol1/data/blast/nr/"
+hhblits_bin_dir="/vol1/apps/hh-suite/3.0-b2/bin/"
+hhsuite_db_dir="/vol1/data/hhsuite/uniprot/uniprot20_2016_02/"
+hhsuite_db_dir_2="/vol1/data/hhsuite/pdb/pdb70/"
+addss_bin_dir="/vol1/apps/hh-suite/3.0-b2/scripts/"
+get_pdb_script_dir="/vol1/apps/rosetta/2016.11.58563/main/source/scripts/python/public/"
+gmtk_dir="/vol1/apps/gmtk/1.4.4/bin/"
+libsvm_dir="/vol1/apps/libsvm/3.21/"
+dspred_dir="/vol1/zafer/software/dspred/stand_alone/"
+
+#*********************************************************************************
+# Setting Paths for DSPRED Ends Here
+#*********************************************************************************
+
+data_dir="${dspred_dir}data/"
+scripts_dir="${dspred_dir}scripts/"
+scripts_dir_pfamscan="${dspred_dir}scripts/pfamscan/"
+hmmer_dir="${dspred_dir}scripts/pfamscan/hmmer3/"
+tcoffee_msa_dir="${scripts_dir_pfamscan}tcoffee/"
+current_dir="$(pwd)/"
+
+PROGNAME="$(basename "$0")"
+
+usage() {
+        echo "-------------------------------------------------------------------------------------------------------------------------"
+	echo "DSPRED Program for Predicting One-Dimensional Structure of Proteins (Secondary Structure, Solvent Accessibility and Torsion Angle Classes"
+	echo "-------------------------------------------------------------------------------------------------------------------------"
+	echo "Usage: $PROGNAME -i <fasta_filename> -p <prediction_task [optional: -t <n_threads> -s <sp_flag> -d <dynamic_flag> -o <output_dir> -h]"
+	echo "OR"
+        echo "Usage: $PROGNAME --input <fasta_filename> --pred <prediction_task [optional: --threads <n_threads> --sp <sp_flag> --dyn <dynamic_flag> --output <output_dir> --help]"
+	echo ""
+	echo "Parameter Options:"
+	echo "-i|--input: input fasta filename (the first line is fasta id that starts with > and the second line is amino acid sequence, this parameter is mandatory"
+	echo "-p|--pred: prediction task: 1 for secondary structure, 4 for torsion angle class, 5 for solvent accessibility class, this parameter is mandatory"
+	echo "-t|--threads: number of threads to use (for PSI-BLAST and HHblits alignments), this parameter is optional, defaul is 4"
+	echo "-s|--sp: sp_flag, which is 1 if the first structural profile matrix (SP1) will be used only, 2 if two structural profile matrices will be used (SP1 and SP2), this parameter is optional, default is 2"
+	echo "-d|--dyn: dynamic_weight_flag, which can take values from 0 to 3 and sets whether dynamic weights will be applied to structural profile matrices in such a way that weights can be different for each target based on the target template similarities, this parameter is optional, default value is 0 (i.e. no dynamic weights)"
+	echo "-o|--output: output directory in which the results will be saved" 
+	echo "-h|--help: prints the usage menu"
+	return
+}
+
+while [[ $# -gt 0 ]];
+do
+	key="$1"
+
+	case "$key" in 
+
+		-i|--input)
+			shift
+			fasta_filename="$1"
+			;;
+		-p|--pred)
+			shift
+			prediction_task="$1"
+			;;
+		-t|--threads)
+			shift
+			n_threads="$1"
+			;;
+		-s|--sp)
+			shift
+			sp_flag="$1"
+			;;
+		-d|--dyn)
+			shift
+			dyn_flag="$1"
+			;;
+		-o|--output)
+			shift
+			output_dir="$1"
+			;;
+		-h | --help)
+			usage
+			exit 0
+			;;
+		#-l|--log)
+		#	shift
+		#	log_filename="$1"
+		#	;;	
+		*)
+			echo "Unknown option $key"
+			usage >&2
+			exit 1
+			;;
+	esac
+
+	shift
+done
+
+#*********************************************************************************
+# Verify parameters and set defaults
+#*********************************************************************************
+
+if [[ -z "$fasta_filename" ]]; then echo "Please enter a valid fasta filename"; exit 1; fi
+
+fasta_filename_wo_path="$(basename "$fasta_filename")"
+fasta_filename_dir="${fasta_filename%$fasta_filename_wo_path}"
+protein_id=${fasta_filename_wo_path%%.*}
+
+if [[ -z "$prediction_task" ]]; then echo "Please enter a valid prediction task (1: secondary structure, 4: 7-state torsion angle class, 5: 2-state solvent accessibility)"; exit 1; fi
+
+if [[ -z "$n_threads" ]]; then n_threads=4; fi #default value for n_threads parameter
+if [[ -z "$sp_flag" ]]; then sp_flag=2; fi #default value for sp flag parameter
+if [[ -z "$dyn_flag" ]]; then dyn_flag=0; fi #default value for whether dynamic weighting is applied on sp_1 and sp_2 (0: equal weights are used (i.e. no dynamic weighting))
+
+if [[ -z "$output_dir" ]]; then output_dir="${current_dir}outputs/"; fi
+#if [[ -z "$log_filename" ]]; then log_filename="${output_dir}run_dspred_${protein_id}.log"; fi
+
+if [ ! -d $output_dir ]; then mkdir -p $output_dir; fi
+
+#*********************************************************************************
+# End of verify parameters and set defaults
+#*********************************************************************************
+
+n_dim=20
+
+case "$prediction_task" in
+
+        1) n_classes=3; pssm_window_size=9; ss_window_size=4; models_dir_dbn="../models/dbn/ss3/"; models_dir_svm="../models/svm/ss3/dyn_${dyn_flag}/"; prediction_str="ss3"; ;; #3-state ss pred
+        2) n_classes=8; pssm_window_size=7; ss_window_size=2; models_dir_dbn=""; ;; #8-state ss pred (not available yet)
+        3) n_classes=5; pssm_window_size=7; ss_window_size=4; models_dir_dbn=""; ;; #5-state torsion pred (not available yet)
+        4) n_classes=7; pssm_window_size=7; ss_window_size=2; models_dir_dbn="../models/dbn/ta7/"; models_dir_svm="../models/svm/ta7/dyn_${dyn_flag}/"; prediction_str="ta7"; ;; #7-state torsion pred
+        5) n_classes=2; pssm_window_size=9; ss_window_size=4; models_dir_dbn="../models/dbn/sa2/"; models_dir_svm="../models/svm/sa2/dyn_${dyn_flag}/"; prediction_str="sa2"; ;; #2-state solvent acc pred
+esac
+
+status_flag=0
+
+echo "Running PSI-BLAST for $protein_id.fasta.."
+
+psiblast_pssm_filename="${output_dir}${protein_id}_psiblast.pssm"
+psiblast_alignment_filename="${output_dir}${protein_id}_psiblast.alignment"
+
+#date
+#${scripts_dir}run_psiblast $fasta_filename $blast_dir $blast_db_dir $n_threads $output_dir $psiblast_pssm_filename $psiblast_alignment_filename
+#status_flag=$?
+#date
+
+if ((status_flag == 0))
+then
+	echo "PSI-BLAST ran successfully for $protein_id.fasta"
+else
+	echo "PSI-BLAST could not run successfully for $protein_id.fasta. Exiting..."
+	exit 1
+fi 
+
+echo "Running HHblits for $protein_id.fasta..."
+
+multiple_alignment_filename="${output_dir}${protein_id}.a3m"
+hhblits_log_filename="${output_dir}${protein_id}_hhblits.log"
+hhblits_alignment_filename="${output_dir}${protein_id}.hhr"
+hhblits_pssm_filename="${output_dir}${protein_id}.hhm"
+
+#date
+#${scripts_dir}run_hhblits $fasta_filename $hhblits_bin_dir $hhsuite_db_dir $hhsuite_db_dir_2 $addss_bin_dir $n_threads $output_dir $multiple_alignment_filename $hhblits_log_filename
+#status_flag=$?
+#date
+
+if ((status_flag == 0))
+then
+        echo "HHblits ran successfully for $protein_id.fasta"
+else
+        echo "HHblits could not run successfully for $protein_id.fasta. Exiting..."
+	exit 1
+fi
+
+rm -rf $fasta_filename_dir${protein_id}.hhr
+
+echo "Computing structural profile (SP1) for $protein_id.fasta using HHblits..."
+
+dssp_bin_dir=$scripts_dir
+torsion_angles_bin_dir=$scripts_dir
+sp_1_filename="${output_dir}${protein_id}_${prediction_str}_sp_1.struct"
+ 
+date
+${scripts_dir}run_compute_sp_1 $fasta_filename $prediction_task $n_classes $get_pdb_script_dir $dssp_bin_dir $torsion_angles_bin_dir $output_dir $sp_1_filename
+status_flag=$?
+date
+
+rm -rf *.pdb.gz
+
+if ((status_flag == 0))
+then
+        echo "Structural profile (SP1) is computed successfully for $protein_id.fasta"
+else
+        echo "Structural profile (SP1) could not be computed successfully for $protein_id.fasta. Exiting..."
+        exit 1
+fi
+
+sp_2_filename="${output_dir}${protein_id}_${prediction_str}_sp_2.struct"
+
+if ((sp_flag == 2))
+then
+	pc_thr=100
+	chain_control=0
+	dssp_labeling_dir="${scripts_dir_pfamscan}for_nuh/"
+	hhmake_dir=$hhblits_bin_dir
+
+	date
+	${scripts_dir_pfamscan}run_compute_sp_2_pfamscan $fasta_filename $prediction_task $pc_thr $chain_control $scripts_dir_pfamscan $hmmer_dir $blast_dir $get_pdb_script_dir $dssp_bin_dir $dssp_labeling_dir $tcoffee_msa_dir $hhmake_dir $output_dir $sp_2_filename
+	date
+	status_flag=$?
+
+	if ((status_flag == 0))
+	then
+		echo "Structural profile (SP2) is computed successfully for $protein_id.fasta"
+	else
+		echo "Structural profile (SP2) could not be computed successfully for $protein_id.fasta. Exiting..."
+		exit 1
+	fi
+fi
+
+echo "Preparing .obs and .list files for $protein_id.fasta, which will be input to DBN models..."
+
+obs_filename_psiblast_dbn_nc="${output_dir}${protein_id}_psiblast_dbn_nc.obs"
+obs_filename_psiblast_dbn_cn="${output_dir}${protein_id}_psiblast_dbn_cn.obs"
+obs_filename_hhmake_dbn_nc="${output_dir}${protein_id}_hhmake_dbn_nc.obs"
+obs_filename_hhmake_dbn_cn="${output_dir}${protein_id}_hhmake_dbn_cn.obs"
+obs_list_filename_psiblast_dbn_nc="${output_dir}${protein_id}_psiblast_dbn_nc_obs.list"
+obs_list_filename_psiblast_dbn_cn="${output_dir}${protein_id}_psiblast_dbn_cn_obs.list"
+obs_list_filename_hhmake_dbn_nc="${output_dir}${protein_id}_hhmake_dbn_nc_obs.list"
+obs_list_filename_hhmake_dbn_cn="${output_dir}${protein_id}_hhmake_dbn_cn_obs.list"
+postp_list_filename_psiblast_dbn_nc="${output_dir}${protein_id}_psiblast_dbn_nc_postp.list"
+postp_list_filename_psiblast_dbn_cn="${output_dir}${protein_id}_psiblast_dbn_cn_postp.list"
+postp_list_filename_hhmake_dbn_nc="${output_dir}${protein_id}_hhmake_dbn_nc_postp.list"
+postp_list_filename_hhmake_dbn_cn="${output_dir}${protein_id}_hhmake_dbn_cn_postp.list"
+
+postp_filename_psiblast_nc=${obs_filename_psiblast_dbn_nc/.obs/.postp}
+postp_filename_psiblast_cn=${obs_filename_psiblast_dbn_cn/.obs/.postp}
+postp_filename_hhmake_nc=${obs_filename_hhmake_dbn_nc/.obs/.postp}
+postp_filename_hhmake_cn=${obs_filename_hhmake_dbn_cn/.obs/.postp}
+average_postp_filename_psiblast=${obs_filename_psiblast_dbn_nc/nc.obs/average.postp}
+average_postp_filename_hhmake=${obs_filename_hhmake_dbn_nc/nc.obs/average.postp}
+
+echo $obs_filename_psiblast_dbn_nc > $obs_list_filename_psiblast_dbn_nc
+echo $obs_filename_psiblast_dbn_cn > $obs_list_filename_psiblast_dbn_cn
+echo $obs_filename_hhmake_dbn_nc > $obs_list_filename_hhmake_dbn_nc
+echo $obs_filename_hhmake_dbn_cn > $obs_list_filename_hhmake_dbn_cn
+
+echo $postp_filename_psiblast_nc > $postp_list_filename_psiblast_dbn_nc
+echo $postp_filename_psiblast_cn > $postp_list_filename_psiblast_dbn_cn
+echo $postp_filename_hhmake_nc > $postp_list_filename_hhmake_dbn_nc
+echo $postp_filename_hhmake_cn > $postp_list_filename_hhmake_dbn_cn
+
+date
+python ${scripts_dir}generate_data_files.py $psiblast_pssm_filename $hhblits_pssm_filename $pssm_window_size $obs_filename_psiblast_dbn_nc $obs_filename_psiblast_dbn_cn $obs_filename_hhmake_dbn_nc $obs_filename_hhmake_dbn_cn
+status_flag=$?
+date
+
+if ((status_flag == 0))
+then
+        echo "Data files for DBN models are generated successfully for $protein_id.fasta"
+else
+        echo "Data files for DBN models could not be generated successfully for $protein_id.fasta. Exiting..."
+        exit 1
+fi
+
+echo "Computing predictions by PSI-BLAST DBN (Past-NC model)"
+
+test_str_filename="${models_dir_dbn}model_test.str"
+tri_filename="${models_dir_dbn}model_test.mytrifile"
+test_master_filename_in="${models_dir_dbn}model_test_in_nc.master"
+n_continuous_features=$n_dim
+n_discrete_features=0
+dbn_jt_log_filename="${output_dir}${protein_id}_psiblast_dbn_nc_jt.log"
+
+date
+${scripts_dir}run_jt $gmtk_dir $test_str_filename $tri_filename $test_master_filename_in $obs_list_filename_psiblast_dbn_nc $n_continuous_features $n_discrete_features $pssm_window_size >& $dbn_jt_log_filename
+status_flag=$?
+python ${scripts_dir}generate_postp_files.py $n_classes $dbn_jt_log_filename $postp_list_filename_psiblast_dbn_nc
+cat $postp_list_filename_psiblast_dbn_nc
+status_flag_2=$?
+date
+
+if ((status_flag == 0 && status_flag_2 == 0))
+then
+        echo "Predictions are computed succesfully by PSI-BLAST DBN Past-NC model for $protein_id.fasta"
+else
+        echo "Predictions could not be computed succesfully by PSI-BLAST DBN Past-NC model for $protein_id.fasta. Exiting..."
+        exit 1
+fi
+
+echo "Computing predictions by PSI-BLAST DBN (Future-CN model)"
+
+test_master_filename_in="${models_dir_dbn}model_test_in_cn.master"
+dbn_jt_log_filename="${output_dir}${protein_id}_psiblast_dbn_cn_jt.log"
+
+date
+${scripts_dir}run_jt $gmtk_dir $test_str_filename $tri_filename $test_master_filename_in $obs_list_filename_psiblast_dbn_cn $n_continuous_features $n_discrete_features $pssm_window_size >& $dbn_jt_log_filename
+status_flag=$?
+python ${scripts_dir}generate_postp_files.py $n_classes $dbn_jt_log_filename $postp_list_filename_psiblast_dbn_cn
+cat $postp_list_filename_psiblast_dbn_cn
+status_flag_2=$?
+date
+
+if ((status_flag == 0 && status_flag_2 == 0))
+then
+        echo "Predictions are computed succesfully by PSI-BLAST DBN Future-CN model for $protein_id.fasta"
+else
+        echo "Predictions could not be computed succesfully by PSI-BLAST DBN Future-CN model for $protein_id.fasta. Exiting..."
+        exit 1
+fi
+
+echo $dbn_jt_log_filename
+
+
+echo "Computing predictions by HHMAKE DBN (Past-NC model)"
+
+test_master_filename_in="${models_dir_dbn}model_test_in_nc.master"
+dbn_jt_log_filename="${output_dir}${protein_id}_hhmake_dbn_nc_jt.log"
+
+date
+${scripts_dir}run_jt $gmtk_dir $test_str_filename $tri_filename $test_master_filename_in $obs_list_filename_hhmake_dbn_nc $n_continuous_features $n_discrete_features $pssm_window_size >& $dbn_jt_log_filename
+status_flag=$?
+python ${scripts_dir}generate_postp_files.py $n_classes $dbn_jt_log_filename $postp_list_filename_hhmake_dbn_nc
+cat $postp_list_filename_hhmake_dbn_nc
+status_flag_2=$?
+date
+
+if ((status_flag == 0 && status_flag_2 == 0))
+then
+        echo "Predictions are computed succesfully by HHMAKE DBN Past-NC model for $protein_id.fasta"
+else
+        echo "Predictions could not be computed succesfully by HHMAKE DBN Past-NC model for $protein_id.fasta. Exiting..."
+        exit 1
+fi
+
+echo "Computing predictions by HHMAKE DBN (Future-CN model)"
+
+test_master_filename_in="${models_dir_dbn}model_test_in_cn.master"
+dbn_jt_log_filename="${output_dir}${protein_id}_hhmake_dbn_cn_jt.log"
+
+date
+${scripts_dir}run_jt $gmtk_dir $test_str_filename $tri_filename $test_master_filename_in $obs_list_filename_hhmake_dbn_cn $n_continuous_features $n_discrete_features $pssm_window_size >& $dbn_jt_log_filename
+status_flag=$?
+python ${scripts_dir}generate_postp_files.py $n_classes $dbn_jt_log_filename $postp_list_filename_hhmake_dbn_cn
+cat $postp_list_filename_hhmake_dbn_cn
+status_flag_2=$?
+date
+
+if ((status_flag == 0 && status_flag_2 == 0))
+then
+        echo "Predictions are computed succesfully by HHMAKE DBN Future-CN model for $protein_id.fasta"
+else
+        echo "Predictions could not be computed succesfully by HHMAKE DBN Future-CN model for $protein_id.fasta. Exiting..."
+        exit 1
+fi
+
+echo "Computing average postp files from PSI-BLAST DBN predictions"
+
+date
+python ${scripts_dir}compute_average_distribution_1_2.py $postp_filename_psiblast_nc $postp_filename_psiblast_cn $average_postp_filename_psiblast
+status_flag=$?
+date
+
+if ((status_flag == 0))
+then
+        echo "Average post files from PSI-BLAST DBN are computed successfully for $protein_id.fasta"
+else
+        echo "Average post files from PSI-BLAST DBN could not be computed successfully for $protein_id.fasta. Exiting..."
+        exit 1
+fi
+
+echo "Computing average postp files from HHMAKE DBN predictions"
+
+date
+python ${scripts_dir}compute_average_distribution_1_2.py $postp_filename_hhmake_nc $postp_filename_hhmake_cn $average_postp_filename_hhmake
+status_flag=$?
+date
+
+if ((status_flag == 0))
+then
+        echo "Average post files from HHMAKE DBN are computed successfully for $protein_id.fasta"
+else
+        echo "Average post files from HHMAKE DBN could not be computed successfully for $protein_id.fasta. Exiting..."
+        exit 1
+fi
+
+echo $average_postp_filename_psiblast
+echo $average_postp_filename_hhmake
+
+echo "Computing Average Distribution 3 (average of prediction distribution from PSI-BLAST DBNs, prediction distribution from HHMAKE DBNs, and structural profile)"
+
+average_distribution_3_filename="${output_dir}${protein_id}_${prediction_str}.dist3"
+
+date
+${scripts_dir}run_compute_average_distribution_3 $scripts_dir $prediction_task $n_classes $hhblits_alignment_filename $average_postp_filename_psiblast $average_postp_filename_hhmake $sp_flag $sp_1_filename $sp_2_filename $dyn_flag $output_dir $average_distribution_3_filename
+status_flag=$?
+date
+
+if ((status_flag == 0))
+then
+        echo "Average distribution 3 is computed successfully for $protein_id.fasta"
+else
+        echo "Average distribution 3 could not be computed successfully for $protein_id.fasta. Exiting..."
+        exit 1
+fi
+
+echo $average_distribution_3_filename
+
+echo "Computing predictions by SVM..."
+
+dat_filename_psiblast="${obs_filename_psiblast_dbn_nc/_psiblast_dbn_nc.obs/.dat}"
+dat_filename_hhmake="${obs_filename_hhmake_dbn_nc/_hhmake_dbn_nc.obs/.dat}"
+
+n_lines=$(cat $obs_filename_psiblast_dbn_nc | wc -l)
+n_aas=$((n_lines-pssm_window_size))
+tail -$n_aas $obs_filename_psiblast_dbn_nc > $dat_filename_psiblast 
+tail -$n_aas $obs_filename_hhmake_dbn_nc > $dat_filename_hhmake
+
+identities_filename="${output_dir}identities"
+max_identity_filename="${output_dir}max_identity"
+skip_top_hit_flag=1
+grep "Identities=" $hhblits_output_filename > $identities_filename
+n_identites=$(cat $identities_filename | wc -l)
+pc_thr=100
+python ${scripts_dir}extract_max_identity.py $identities_filename $pc_thr $max_identity_filename $skip_top_hit_flag
+max_identity=$(cat $max_identity_filename)
+
+statement=$(echo "$max_identity <= 20" | bc)
+statement_2=$(echo "$max_identity <= 30" | bc)
+statement_3=$(echo "$max_identity <= 40" | bc)
+statement_4=$(echo "$max_identity <= 50" | bc)
+statement_5=$(echo "$max_identity <= 60" | bc)
+statement_6=$(echo "$max_identity <= 70" | bc)
+statement_7=$(echo "$max_identity <= 80" | bc)
+statement_8=$(echo "$max_identity <= 90" | bc)
+statement_9=$(echo "$max_identity <= 100" | bc)
+
+if [ $statement -eq 1 ]
+then
+	identity_str=20
+
+elif [ $statement_2 -eq 1 ]
+then
+        identity_str=30
+
+elif [ $statement_3 -eq 1 ]
+then	
+        identity_str=40
+
+elif [ $statement_4 -eq 1 ]
+then
+        identity_str=50
+
+elif [ $statement_5 -eq 1 ]
+then
+        identity_str=60
+
+elif [ $statement_6 -eq 1 ]
+then
+        identity_str=70
+
+elif [ $statement_7 -eq 1 ]
+then
+        identity_str=80
+
+elif [ $statement_8 -eq 1 ]
+then
+        identity_str=90
+
+elif [ $statement_9 -eq 1 ]
+then
+        identity_str=100
+fi
+
+svm_input_data_filename="${output_dir}${protein_id}.libsvm"
+svm_trained_model_filename="${models_dir_svm}svm_cb513_pc_${identity_str}.model"
+libsvm_output_filename="${output_dir}${protein_id}_libsvm.out"
+dspred_output_filename="${output_dir}${protein_id}_dspred.out"
+
+#CLOSE THIS LATER WHEN WE TRAIN MODELS ON LARGER SET WITH PSSM_WINDOW_SIZE=9
+pssm_window_size=5
+pssm_window_size_two_sided=$((2*pssm_window_size+1))
+
+date
+${scripts_dir}run_svm $data_dir $scripts_dir $libsvm_dir $prediction_task $n_classes $dat_filename_psiblast $dat_filename_hhmake $average_postp_filename_psiblast $average_postp_filename_hhmake $average_distribution_3_filename $pssm_window_size_two_sided $svm_input_data_filename $svm_trained_model_filename $libsvm_output_filename $dspred_output_filename
+status_flag=$?
+date
+
+if ((status_flag == 0))
+then
+        echo "SVM predictions are computed successfully for $protein_id.fasta"
+else
+        echo "SVM predictions could not be computed successfully for $protein_id.fasta. Exiting..."
+        exit 1
+fi
+

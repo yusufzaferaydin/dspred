@@ -1,0 +1,30 @@
+#!/bin/bash
+
+usage (){
+
+	echo "Usage: run_psiblast <fasta_filename> <blast_dir> <blast_db_dir> <n_threads> <output_dir> <output_pssm_filename> <output_alignment_filename> "
+	return
+}
+
+if [ $# != 7 ]
+then
+	usage >&2
+	exit 1
+fi
+	
+fasta_filename=$1
+blast_dir=$2
+blast_db_dir=$3
+n_threads=$4
+output_dir=$5
+output_pssm_filename=$6
+output_alignment_filename=$7
+
+blast_db_parameter="${blast_db_dir}nr"
+
+n_itarations=3
+e_value=10
+inclusion_thr=0.001
+
+${blast_dir}psiblast -query $fasta_filename -out $output_alignment_filename -out_ascii_pssm $output_pssm_filename -num_iterations $n_itarations -evalue $e_value -inclusion_ethresh $inclusion_thr -db $blast_db_parameter -num_threads $n_threads
+

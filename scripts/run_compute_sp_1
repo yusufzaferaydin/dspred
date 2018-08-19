@@ -1,0 +1,54 @@
+#!/bin/bash
+
+if [ $# -ne 8 ]
+then
+	echo "Usage: run_compute_sp_1 <fasta_filename> <prediction_task> <n_classes> <get_pdb_script_dir> <dssp_bin_dir> <torsion_angles_bin_dir> <output_dir> <sp_1_filename>"
+	exit 1 
+fi
+
+fasta_filename=$1
+prediction_task=$2
+n_classes=$3
+get_pdb_script_dir=$4
+dssp_bin_dir=$5
+torsion_angles_bin_dir=$6
+output_dir=$7
+sp_1_filename=$8
+
+hmm_alignments_dir=$output_dir
+
+hmm_alignments_list_filename="${hmm_alignments_dir}hmm_alignments.list"
+
+ls ${hmm_alignments_dir}*.hhr > $hmm_alignments_list_filename
+
+pdb_files_dir=$output_dir
+dssp_files_dir=$output_dir
+torsion_files_dir=$output_dir
+get_pdb_script_filename="${get_pdb_script_dir}get_pdb.py"
+get_dssp_script_filename="${dssp_bin_dir}mkdssp"
+extract_aa_ss_sa_labels_script_filename="dssp2fasta_aa_ss_sa.py"
+compute_torsion_angles_script_filename="${torsion_angles_bin_dir}phipsi_linux"
+hhblits_score_percentage_threshold=100
+
+#pdb_files_dir="/vol1/data/pdb/pdb_chains/"
+#dssp_files_dir="/vol1/data/dssp/"
+#torsion_files_dir="/vol1/data/torsion/"
+#get_pdb_script_filename="/vol1/apps/rosetta/2016.11.58563/main/source/scripts/python/public/get_pdb.py"
+#get_dssp_script_filename="/vol1/apps/dssp/2.2.1/mkdssp"
+#extract_aa_ss_sa_labels_script_filename="dssp2fasta_aa_ss_sa.py"
+#compute_torsion_angles_script_filename="/vol1/apps/torsion/phipsi_linux"
+#hhblits_score_percentage_threshold=100
+
+#blosum_matrix_filename="${data_dir}BLOSUM62.txt"
+blosum_matrix_filename="BLOSUM62.txt" #Not used currently
+
+percentage_identity_threshold=100
+power_parameter=9
+
+hhr_filename_full_path=$(cat $hmm_alignments_list_filename)
+hhr_filename_base=$(basename "$hhr_filename_full_path")
+protein_id=${hhr_filename_base%%.*}
+max_seq_identities_filename="${output_dir}max_seq_identities_$protein_id"
+
+python construct_structural_profiles_1_stand_alone.py $prediction_task $n_classes $fasta_filename $hmm_alignments_dir $pdb_files_dir $dssp_files_dir $torsion_files_dir $hmm_alignments_list_filename $get_pdb_script_filename $get_dssp_script_filename $extract_aa_ss_sa_labels_script_filename $compute_torsion_angles_script_filename $hhblits_score_percentage_threshold $percentage_identity_threshold $power_parameter $blosum_matrix_filename $output_dir $max_seq_identities_filename $sp_1_filename
+

@@ -1,0 +1,89 @@
+#!/bin/bash
+
+if [ $# -ne 14 ]
+then
+        echo "Usage: pfamscan_standalone.sh <fasta_filename> <prediction_task> <pc_thr> <chain_control> <pfamscan_dir> <hmmer_dir> <blastp_dir> <rosetta_get_pdb_dir> <dssp_bin_dir> <dssp_labeling_dir> <tcoffee_msa_dir> <hhmake_dir> <output_dir> <sp_2_filename>"
+        exit 1
+fi
+
+fasta_filename_full_path=$1
+prediction_task=$2 #1 for ss3, 4 for torsion, 5 for solvent
+pc_thr=$3
+chain_control=$4
+pfamscan_dir=$5
+hmmer_dir=$6
+blastp_dir=$7
+rosetta_get_pdb_dir=$8
+dssp_bin_dir=$9
+dssp_labeling_dir=${10}
+tcoffee_msa_dir=${11}
+hhmake_dir=${12}
+output_dir=${13}
+sp_2_filename=${14}
+
+export PATH=$hmmer_dir":"$PATH
+export PERL5LIB=$pfamscan_dir":"$PERL5LIB
+export PATH=$hmmer_dir"/binaries:"$PATH
+
+#export PATH=/path/to/install/hmmer3:$PATH
+#export PATH=/path/to/install/hmmer3/binaries:$PATH
+#export PERL5LIB=/path/to/pfam_scanDir:$PERL5LIB
+
+torsion_angle_program_dir=$pfamscan_dir
+torsion_angle_bin="${torsion_angle_program_dir}phipsi_linux"
+tcoffee_msa_bin="${tcoffee_msa_dir}t_coffee"
+hhmake_bin="${hhmake_dir}hhmake"
+#tcoffee_output_dir="${tcoffee_msa_dir}outputs/"
+tcoffee_output_dir="${tcoffee_msa_dir}tcoffee/"
+
+cp $fasta_filename_full_path $pfamscan_dir"fastas/"
+fasta_filename=$(basename "$fasta_filename_full_path")
+protein_id=${fasta_filename%%.*}
+
+echo "pfamscan is working..."
+python $pfamscan_dir"script_pfam.py" $fasta_filename $pfamscan_dir
+echo "pfamscan process has been completed."
+cp $pfamscan_dir"pfamdomain_proteins/$fasta_filename" $pfamscan_dir"for_nuh/data/"
+echo "dssp labelling is started..."
+bash $pfamscan_dir"for_nuh/scripts/runall_download_pdb_chains_dssp_files" $fasta_filename $dssp_labeling_dir $rosetta_get_pdb_dir $dssp_bin_dir $torsion_angle_bin
+echo "dssp labelling is completed."
+
+cp $pfamscan_dir"for_nuh/results/"$fasta_filename"_aa_ss_sa_torsion.fasta" $pfamscan_dir"torsion/"
+cp $pfamscan_dir"for_nuh/results/"$fasta_filename"_aa_ss_sa_torsion.fasta" $pfamscan_dir"pfam_torsion_fasta/"
+echo "preparing for tcoffee section..."
+python $pfamscan_dir"prepare_for_tcoffee_standalone.py" $fasta_filename $pfamscan_dir
+python $pfamscan_dir"make_list_file_standalone.py" $fasta_filename $pfamscan_dir
+
+echo "prepared for tcoffee. tcoffee is starting..."
+cp $pfamscan_dir"tcoffee_pfam_data"/* $tcoffee_msa_dir
+mv $pfamscan_dir"tcoffee_pfam_data"/* $pfamscan_dir"safiles/"
+mv $pfamscan_dir"fastas_test.list" $tcoffee_output_dir
+bash $tcoffee_msa_dir"runall_msa" $tcoffee_msa_bin $hhmake_bin $tcoffee_output_dir $tcoffee_msa_dir
+echo "finished tcoffee"
+mv $tcoffee_msa_dir"tcoffee/"*fasta_aln $pfamscan_dir"/aln"
+python $pfamscan_dir"change_array_standalone.py" $fasta_filename $pfamscan_dir
+
+echo "blastp section is starting"
+python $pfamscan_dir"blast_standalone.py" $pc_thr $fasta_filename $blastp_dir $pfamscan_dir
+echo "blastp section has been completed"
+
+if [ $chain_control = 1 ]
+then
+python $pfamscan_dir"control_chain.py" $fasta_filename $pfamscan_dir
+echo "chain controlling.."
+fi
+
+if [ $prediction_task = 1 ]
+then
+python $pfamscan_dir"structural_matrix_standalone.py" $fasta_filename $output_dir $pc_thr $pfamscan_dir $sp_2_filename
+elif [ $prediction_task = 4 ]
+then
+python $pfamscan_dir"torsion_structural_matrix_standalone.py" $fasta_filename $output_dir $pc_thr $pfamscan_dir $sp_2_filename
+elif [ $prediction_task = 5 ]
+then
+python $pfamscan_dir"solvent_structural_matrix_standalone.py" $fasta_filename $output_dir $pc_thr $pfamscan_dir $sp_2_filename
+fi
+echo "profile matrice has been generated"
+
+#rm $pfamscan_dir"newaln/*" $pfamscan_dir"pfamdomain_proteins/*" $pfamscan_dir"pfamresults/*" $pfamscan_dir"pfam_torsion_fasta/*" $pfamscan_dir"related/*" $pfamscan_dir"safiles/*" $pfamscan_dir"scores/*" $pfamscan_dir"torsion/*" $pfamscan_dir"aln/*"
+sh $pfamscan_dir"clean.sh" $pfamscan_dir $dssp_labeling_dir $tcoffee_msa_dir $output_dir
