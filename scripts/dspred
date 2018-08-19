@@ -148,10 +148,10 @@ echo "Running PSI-BLAST for $protein_id.fasta.."
 psiblast_pssm_filename="${output_dir}${protein_id}_psiblast.pssm"
 psiblast_alignment_filename="${output_dir}${protein_id}_psiblast.alignment"
 
-#date
-#${scripts_dir}run_psiblast $fasta_filename $blast_dir $blast_db_dir $n_threads $output_dir $psiblast_pssm_filename $psiblast_alignment_filename
-#status_flag=$?
-#date
+date
+${scripts_dir}run_psiblast $fasta_filename $blast_dir $blast_db_dir $n_threads $output_dir $psiblast_pssm_filename $psiblast_alignment_filename
+status_flag=$?
+date
 
 if ((status_flag == 0))
 then
@@ -168,10 +168,10 @@ hhblits_log_filename="${output_dir}${protein_id}_hhblits.log"
 hhblits_alignment_filename="${output_dir}${protein_id}.hhr"
 hhblits_pssm_filename="${output_dir}${protein_id}.hhm"
 
-#date
-#${scripts_dir}run_hhblits $fasta_filename $hhblits_bin_dir $hhsuite_db_dir $hhsuite_db_dir_2 $addss_bin_dir $n_threads $output_dir $multiple_alignment_filename $hhblits_log_filename
-#status_flag=$?
-#date
+date
+${scripts_dir}run_hhblits $fasta_filename $hhblits_bin_dir $hhsuite_db_dir $hhsuite_db_dir_2 $addss_bin_dir $n_threads $output_dir $multiple_alignment_filename $hhblits_log_filename
+status_flag=$?
+date
 
 if ((status_flag == 0))
 then
