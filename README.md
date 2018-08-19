@@ -15,7 +15,7 @@ The following software must be installed for DSPRED along with the protein datab
 
 For PSI-BLAST, the NR database and for HHblits, the Uniprot as well as PDB70 databases should be downloaded. Detailed installation instructions for HHblits can be found [here](install_hhsuite). 
 
-# Note about PfamScan and SP2
+## Note about PfamScan and SP2
 
 The second structural profile matrix (SP2) is computed using the PfamScan program (https://www.ebi.ac.uk/seqdb/confluence/display/THD/PfamScan), which is available under scripts/pfamscan/ folder.  It uses HMMER3 software to compute sequence-HMM-profile alignments, as well as Perl, Moose for Perl, BioPerl, blastp, T-Coffee and hhmake binary of HHblits. HMMER's binaries are available by default under scripts/pfamscan/hmmer3/, BioPerl under scripts/pfamscan/bioperl-1.4/ and T-Coffee under scripts/pfamscan/tcoffee/. If a problem occurs during SP2 computation you can install PfamScan and its dependencies by reading [here](scripts/pfamscan/README_pfamscan). PfamScan program depends on the following software:
 
