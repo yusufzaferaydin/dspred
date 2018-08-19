@@ -58,7 +58,7 @@ if __name__ == "__main__":
         sp_1_file.close()
         n_lines_sp_1 = len(sp_1_file_inside)
 
-	if (os.path.exits(sp_2_filename)):
+	if (os.path.exists(sp_2_filename)):
 	        sp_2_file = open(sp_2_filename, 'r')
         	sp_2_file_inside = sp_2_file.readlines()
 	        sp_2_file.close()
@@ -94,8 +94,8 @@ if __name__ == "__main__":
 
         psiblast_weight_orig = psiblast_weight
         hhmake_weight_orig = hhmake_weight
-        struct_1_weight_orig = struct_1_weight
-        struct_2_weight_orig = struct_2_weight
+        sp_1_weight_orig = sp_1_weight
+        sp_2_weight_orig = sp_2_weight
 
 	n_aas = 0
 	n_aas_no_hit = 0
@@ -113,8 +113,8 @@ if __name__ == "__main__":
 
                 psiblast_weight = psiblast_weight_orig
                 hhmake_weight = hhmake_weight_orig
-                struct_1_weight = struct_1_weight_orig
-                struct_2_weight = struct_2_weight_orig
+                sp_1_weight = sp_1_weight_orig
+                sp_2_weight = sp_2_weight_orig
 
 		if (n_lines_sp_1 > 0):
 	                line = sp_1_file_inside[i].rstrip()
@@ -155,23 +155,23 @@ if __name__ == "__main__":
                         no_hit_aa_flag_2 = 1
 
                 if (no_hit_aa_flag == 1):
-                        struct_1_weight = 0.0
+                        sp_1_weight = 0.0
 
                 if (no_hit_aa_flag_2 == 1):
-                        struct_2_weight = 0.0
+                        sp_2_weight = 0.0
 
-                if (struct_1_weight == 0.0) and (struct_2_weight == 0.0):
+                if (sp_1_weight == 0.0) and (sp_2_weight == 0.0):
                         psiblast_weight = 0.5
                         hhmake_weight = 0.5
 			n_aas_no_hit += 1
 
-                total_weight = psiblast_weight + hhmake_weight + struct_1_weight + struct_2_weight
+                total_weight = psiblast_weight + hhmake_weight + sp_1_weight + sp_2_weight
 
 		for j in range(n_states):
 
                         if (total_weight != 0.0):
 
-				posteriors_average[j] = (psiblast_weight*float(posteriors_psiblast[j]) + hhmake_weight*float(posteriors_hhmake[j]) + struct_1_weight*float(posteriors_struct_1[j]) + struct_2_weight*float(posteriors_struct_2[j])) / total_weight
+				posteriors_average[j] = (psiblast_weight*float(posteriors_psiblast[j]) + hhmake_weight*float(posteriors_hhmake[j]) + sp_1_weight*float(posteriors_sp_1[j]) + sp_2_weight*float(posteriors_sp_2[j])) / total_weight
 			else:
                                 posteriors_average[j] = 0.0
 			
@@ -183,12 +183,12 @@ if __name__ == "__main__":
                                 print "Posterior average is negative for %s" % struct_2_dbn_filename
                                 print psiblast_weight
                                 print hhmake_weight
-                                print struct_1_weight
-                                print struct_2_weight
+                                print sp_1_weight
+                                print sp_2_weight
                                 print posteriors_psiblast[j]
                                 print posteriors_hhmake[j]
-                                print posteriors_struct_1[j]
-                                print posteriors_struct_2[j]
+                                print posteriors_sp_1[j]
+                                print posteriors_sp_2[j]
                                 sys.exit(1)
 
                         if ( round(posteriors_average[j],5) > round(max_posterior,5) ):

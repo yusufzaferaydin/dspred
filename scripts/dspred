@@ -195,6 +195,9 @@ status_flag=$?
 date
 
 rm -rf *.pdb.gz
+rm -rf ${output_dir}*.pdb
+rm -rf ${output_dir}*.dssp
+rm -rf ${output_dir}*.conf
 
 if ((status_flag == 0))
 then
@@ -214,7 +217,7 @@ then
 	hhmake_dir=$hhblits_bin_dir
 
 	date
-	${scripts_dir_pfamscan}run_compute_sp_2_pfamscan $fasta_filename $prediction_task $pc_thr $chain_control $scripts_dir_pfamscan $hmmer_dir $blast_dir $get_pdb_script_dir $dssp_bin_dir $dssp_labeling_dir $tcoffee_msa_dir $hhmake_dir $output_dir $sp_2_filename
+	${scripts_dir}run_compute_sp_2_pfamscan $fasta_filename $prediction_task $pc_thr $chain_control $scripts_dir_pfamscan $hmmer_dir $blast_dir $get_pdb_script_dir $dssp_bin_dir $dssp_labeling_dir $tcoffee_msa_dir $hhmake_dir $output_dir $sp_2_filename
 	date
 	status_flag=$?
 
@@ -428,8 +431,9 @@ tail -$n_aas $obs_filename_hhmake_dbn_nc > $dat_filename_hhmake
 identities_filename="${output_dir}identities"
 max_identity_filename="${output_dir}max_identity"
 skip_top_hit_flag=1
-grep "Identities=" $hhblits_output_filename > $identities_filename
+grep "Identities=" $hhblits_alignment_filename > $identities_filename
 n_identites=$(cat $identities_filename | wc -l)
+
 pc_thr=100
 python ${scripts_dir}extract_max_identity.py $identities_filename $pc_thr $max_identity_filename $skip_top_hit_flag
 max_identity=$(cat $max_identity_filename)
