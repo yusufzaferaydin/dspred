@@ -1,0 +1,10 @@
+#ifndef COMMON_PARAMS
+#define COMMON_PARAMS
+
+#define BINARY_CARD			2
+#define TRIPLE_CARD			3
+#define STATE_CARD			3
+#define MAX_STATE_LENGTH_CARD			13
+#define STATE_CLASS_HISTORY_CARD			243
+#define WEIGHT_AA_PROFILE			0.5
+#endif
