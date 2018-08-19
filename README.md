@@ -34,7 +34,9 @@ If you had to re-install BioPerl you need to install it under scripts/pfamscan/ 
 1. cd to the directory where you want to install DSPRED
 2. Type the following command<br/>
     git clone https://github.com/yusufzaferaydin/dspred.git
-3. cd dspred/scripts
+3. Download the model files for SVM under [models](models) directory from the following Google drive: https://drive.google.com/open?id=1hqzf2E4QWoKc9HCpnI9Ytmi3crwAAonw
+4. Download the pfamscan directory under [scripts](scripts) directory from the following Google drive: https://drive.google.com/open?id=1CvKlPE2tek12x6FU_2KRzgU9kdV63kyl
+5. cd dspred/scripts
 
 # Setting the paths and running DSPRED
 
