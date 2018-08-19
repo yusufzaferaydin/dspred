@@ -1,0 +1,31 @@
+GRAPHICAL_MODEL model_test
+
+#include "common_params.txt"
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% frame0 is the PROLOGUE : there are no previous frames, so all nodes in this
+% frame need to be either observed, or initialized according to some prior
+% probabilities (or the parent needs to be within the same frame).
+%
+
+frame: 0 {
+
+	#include "model_prologue_test.inc"
+}	
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% frame1 is the CHUNK : this is the frame that will be replicated as many times
+% as needed to 'unroll' the DBN to match the length of the input protein;
+% several nodes have parents from the preceding frame
+%
+
+frame: 1 {
+
+	#include "model_chunk_test.inc"
+}
+
+chunk 1:1
+
+
