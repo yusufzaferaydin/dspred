@@ -154,8 +154,6 @@ ${scripts_dir}run_psiblast $fasta_filename $blast_dir $blast_db_dir $n_threads $
 status_flag=$?
 date
 
-exit 0
-
 if ((status_flag == 0))
 then
 	echo "PSI-BLAST ran successfully for $protein_id.fasta"
