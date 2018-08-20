@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ $# != 9 ]
+if [ $# != 8 ]
 then
-	echo "Usage: run_hhblits <fasta_filename> <hhblits_bin_dir> <hhsuite_db_dir> <hhsuite_db_dir_2> <addss_bin_dir> <n_cpus> <output_dir> <multiple_alignment_filename> <hhblits_log_filename>" >&2
+	echo "Usage: run_hhblits <fasta_filename> <hhblits_bin_dir> <hhsuite_db_dir> <hhsuite_db_dir_2> <addss_bin_dir> <n_cpus> <output_dir> <multiple_alignment_filename>" >&2
 	exit 1
 fi
 
@@ -14,12 +14,11 @@ addss_bin_dir=$5
 n_cpus=$6
 output_dir=$7
 multiple_alignment_filename=$8
-hhblits_log_filename=$9
 
 hhmake_bin_dir=$hhblits_bin_dir
 
-${hhblits_bin_dir}hhblits -i $fasta_filename -d ${hhsuite_db_dir}uniprot20_2016_02 -oa3m $multiple_alignment_filename -n 2 -cpu $n_cpus > $hhblits_log_filename
-${hhmake_bin_dir}hhmake -i $multiple_alignment_filename >> $hhblits_log_filename
-perl ${addss_bin_dir}addss.pl $multiple_alignment_filename >> $hhblits_log_filename
-${hhblits_bin_dir}hhblits -i $multiple_alignment_filename -d ${hhsuite_db_dir_2}pdb70 -n 1 -cpu $n_cpus >> $hhblits_log_filename
+${hhblits_bin_dir}hhblits -i $fasta_filename -d ${hhsuite_db_dir}uniprot20_2016_02 -oa3m $multiple_alignment_filename -n 2 -cpu $n_cpus
+${hhmake_bin_dir}hhmake -i $multiple_alignment_filename
+perl ${addss_bin_dir}addss.pl $multiple_alignment_filename
+${hhblits_bin_dir}hhblits -i $multiple_alignment_filename -d ${hhsuite_db_dir_2}pdb70 -n 1 -cpu $n_cpus
 

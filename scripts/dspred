@@ -147,11 +147,14 @@ echo "Running PSI-BLAST for $protein_id.fasta.."
 
 psiblast_pssm_filename="${output_dir}${protein_id}_psiblast.pssm"
 psiblast_alignment_filename="${output_dir}${protein_id}_psiblast.alignment"
+psiblast_log_filename="${output_dir}${protein_id}_psiblast.log"
 
 date
-${scripts_dir}run_psiblast $fasta_filename $blast_dir $blast_db_dir $n_threads $output_dir $psiblast_pssm_filename $psiblast_alignment_filename
+${scripts_dir}run_psiblast $fasta_filename $blast_dir $blast_db_dir $n_threads $output_dir $psiblast_pssm_filename $psiblast_alignment_filename >& $psiblast_log_filename
 status_flag=$?
 date
+
+exit 0
 
 if ((status_flag == 0))
 then
@@ -169,7 +172,7 @@ hhblits_alignment_filename="${output_dir}${protein_id}.hhr"
 hhblits_pssm_filename="${output_dir}${protein_id}.hhm"
 
 date
-${scripts_dir}run_hhblits $fasta_filename $hhblits_bin_dir $hhsuite_db_dir $hhsuite_db_dir_2 $addss_bin_dir $n_threads $output_dir $multiple_alignment_filename $hhblits_log_filename
+${scripts_dir}run_hhblits $fasta_filename $hhblits_bin_dir $hhsuite_db_dir $hhsuite_db_dir_2 $addss_bin_dir $n_threads $output_dir $multiple_alignment_filename >& $hhblits_log_filename
 status_flag=$?
 date
 
@@ -188,9 +191,10 @@ echo "Computing structural profile (SP1) for $protein_id.fasta using HHblits..."
 dssp_bin_dir=$scripts_dir
 torsion_angles_bin_dir=$scripts_dir
 sp_1_filename="${output_dir}${protein_id}_${prediction_str}_sp_1.struct"
- 
+sp_1_log_filename="${output_dir}${protein_id}_sp_1.log"
+
 date
-${scripts_dir}run_compute_sp_1 $fasta_filename $prediction_task $n_classes $get_pdb_script_dir $dssp_bin_dir $torsion_angles_bin_dir $output_dir $sp_1_filename
+${scripts_dir}run_compute_sp_1 $fasta_filename $prediction_task $n_classes $get_pdb_script_dir $dssp_bin_dir $torsion_angles_bin_dir $output_dir $sp_1_filename >& $sp_1_log_filename
 status_flag=$?
 date
 
@@ -208,6 +212,7 @@ else
 fi
 
 sp_2_filename="${output_dir}${protein_id}_${prediction_str}_sp_2.struct"
+sp_2_log_filename="${output_dir}${protein_id}_sp_2.log"
 
 if ((sp_flag == 2))
 then
@@ -217,7 +222,7 @@ then
 	hhmake_dir=$hhblits_bin_dir
 
 	date
-	${scripts_dir}run_compute_sp_2_pfamscan $fasta_filename $prediction_task $pc_thr $chain_control $scripts_dir_pfamscan $hmmer_dir $blast_dir $get_pdb_script_dir $dssp_bin_dir $dssp_labeling_dir $tcoffee_msa_dir $hhmake_dir $output_dir $sp_2_filename
+	${scripts_dir}run_compute_sp_2_pfamscan $fasta_filename $prediction_task $pc_thr $chain_control $scripts_dir_pfamscan $hmmer_dir $blast_dir $get_pdb_script_dir $dssp_bin_dir $dssp_labeling_dir $tcoffee_msa_dir $hhmake_dir $output_dir $sp_2_filename >& $sp_2_log_filename
 	date
 	status_flag=$?
 
@@ -316,7 +321,7 @@ date
 ${scripts_dir}run_jt $gmtk_dir $test_str_filename $tri_filename $test_master_filename_in $obs_list_filename_psiblast_dbn_nc $n_continuous_features $n_discrete_features $pssm_window_size >& $dbn_jt_log_filename
 status_flag=$?
 python ${scripts_dir}generate_postp_files.py $n_classes $dbn_jt_log_filename $postp_list_filename_psiblast_dbn_nc
-cat $postp_list_filename_psiblast_dbn_nc
+#cat $postp_list_filename_psiblast_dbn_nc
 status_flag_2=$?
 date
 
@@ -337,7 +342,7 @@ date
 ${scripts_dir}run_jt $gmtk_dir $test_str_filename $tri_filename $test_master_filename_in $obs_list_filename_psiblast_dbn_cn $n_continuous_features $n_discrete_features $pssm_window_size >& $dbn_jt_log_filename
 status_flag=$?
 python ${scripts_dir}generate_postp_files.py $n_classes $dbn_jt_log_filename $postp_list_filename_psiblast_dbn_cn
-cat $postp_list_filename_psiblast_dbn_cn
+#cat $postp_list_filename_psiblast_dbn_cn
 status_flag_2=$?
 date
 
@@ -349,7 +354,7 @@ else
         exit 1
 fi
 
-echo $dbn_jt_log_filename
+#echo $dbn_jt_log_filename
 
 
 echo "Computing predictions by HHMAKE DBN (Past-NC model)"
@@ -376,7 +381,7 @@ date
 ${scripts_dir}run_jt $gmtk_dir $test_str_filename $tri_filename $test_master_filename_in $obs_list_filename_hhmake_dbn_nc $n_continuous_features $n_discrete_features $pssm_window_size >& $dbn_jt_log_filename
 status_flag=$?
 python ${scripts_dir}generate_postp_files.py $n_classes $dbn_jt_log_filename $postp_list_filename_hhmake_dbn_nc
-cat $postp_list_filename_hhmake_dbn_nc
+#cat $postp_list_filename_hhmake_dbn_nc
 status_flag_2=$?
 date
 
@@ -397,7 +402,7 @@ date
 ${scripts_dir}run_jt $gmtk_dir $test_str_filename $tri_filename $test_master_filename_in $obs_list_filename_hhmake_dbn_cn $n_continuous_features $n_discrete_features $pssm_window_size >& $dbn_jt_log_filename
 status_flag=$?
 python ${scripts_dir}generate_postp_files.py $n_classes $dbn_jt_log_filename $postp_list_filename_hhmake_dbn_cn
-cat $postp_list_filename_hhmake_dbn_cn
+#cat $postp_list_filename_hhmake_dbn_cn
 status_flag_2=$?
 date
 
@@ -459,7 +464,7 @@ else
         exit 1
 fi
 
-echo $average_distribution_3_filename
+#echo $average_distribution_3_filename
 
 echo "Computing predictions by SVM..."
 
