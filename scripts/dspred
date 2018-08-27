@@ -134,11 +134,11 @@ n_dim=20
 
 case "$prediction_task" in
 
-        1) n_classes=3; pssm_window_size=9; ss_window_size=4; models_dir_dbn="${dspred_dir}models/dbn/ss3/"; models_dir_svm="${dspred_dir}models/svm/ss3/dyn_${dyn_flag}/"; prediction_str="ss3"; ;; #3-state ss pred
+        1) n_classes=3; pssm_window_size=9; ss_window_size=4; models_dir_dbn="${dspred_dir}models/dbn/ss3/"; models_dir_svm="${dspred_dir}models/svm/ss3/sp_${sp_flag}/"; prediction_str="ss3"; ;; #3-state ss pred
         2) n_classes=8; pssm_window_size=7; ss_window_size=2; models_dir_dbn=""; ;; #8-state ss pred (not available yet)
         3) n_classes=5; pssm_window_size=7; ss_window_size=4; models_dir_dbn=""; ;; #5-state torsion pred (not available yet)
-        4) n_classes=7; pssm_window_size=7; ss_window_size=2; models_dir_dbn="${dspred_dir}models/dbn/ta7/"; models_dir_svm="${dspred_dir}models/svm/ta7/dyn_${dyn_flag}/"; prediction_str="ta7"; ;; #7-state torsion pred
-        5) n_classes=2; pssm_window_size=9; ss_window_size=4; models_dir_dbn="${dspred_dir}models/dbn/sa2/"; models_dir_svm="${dspred_dir}models/svm/sa2/dyn_${dyn_flag}/"; prediction_str="sa2"; ;; #2-state solvent acc pred
+        4) n_classes=7; pssm_window_size=7; ss_window_size=2; models_dir_dbn="${dspred_dir}models/dbn/ta7/"; models_dir_svm="${dspred_dir}models/svm/ta7/sp_${sp_flag}/"; prediction_str="ta7"; ;; #7-state torsion pred
+        5) n_classes=2; pssm_window_size=9; ss_window_size=4; models_dir_dbn="${dspred_dir}models/dbn/sa2/"; models_dir_svm="${dspred_dir}models/svm/sa2/sp_${sp_flag}/"; prediction_str="sa2"; ;; #2-state solvent acc pred
 esac
 
 status_flag=0
@@ -532,16 +532,17 @@ then
 fi
 
 svm_input_data_filename="${output_dir}${protein_id}.libsvm"
-svm_trained_model_filename="${models_dir_svm}svm_cb513_pc_${identity_str}.model"
+svm_trained_model_filename="${models_dir_svm}svm_evaset_${prediction_str}_pc_${identity_str}.model"
 libsvm_output_filename="${output_dir}${protein_id}_libsvm.out"
+libsvm_log_filename="${output_dir}${protein_id}_libsvm.log"
 dspred_output_filename="${output_dir}${protein_id}_dspred.out"
 
 #CLOSE THIS LATER WHEN WE TRAIN MODELS ON LARGER SET WITH PSSM_WINDOW_SIZE=9
-pssm_window_size=5
+#pssm_window_size=9
 pssm_window_size_two_sided=$((2*pssm_window_size+1))
 
 date
-${scripts_dir}run_svm $data_dir $scripts_dir $libsvm_dir $prediction_task $n_classes $dat_filename_psiblast $dat_filename_hhmake $average_postp_filename_psiblast $average_postp_filename_hhmake $average_distribution_3_filename $pssm_window_size_two_sided $svm_input_data_filename $svm_trained_model_filename $libsvm_output_filename $dspred_output_filename
+${scripts_dir}run_svm $data_dir $scripts_dir $libsvm_dir $prediction_task $n_classes $dat_filename_psiblast $dat_filename_hhmake $average_postp_filename_psiblast $average_postp_filename_hhmake $average_distribution_3_filename $pssm_window_size_two_sided $svm_input_data_filename $svm_trained_model_filename $libsvm_output_filename $dspred_output_filename >& $libsvm_log_filename
 status_flag=$?
 date
 
@@ -552,4 +553,8 @@ else
         echo "SVM predictions could not be computed successfully for $protein_id.fasta. Exiting..."
         exit 1
 fi
+
+echo "Prediction output is saved to: $dspred_output_filename"
+exit 0
+
 

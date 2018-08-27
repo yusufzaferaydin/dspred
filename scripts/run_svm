@@ -28,5 +28,3 @@ ${libsvm_dir}svm-predict -b 1 $svm_input_data_filename $svm_trained_model_filena
 
 python ${scripts_dir}reformat_svm_prediction_output.py $prediction_task $libsvm_output_filename $dspred_output_filename
 
-echo $dspred_output_filename
-
